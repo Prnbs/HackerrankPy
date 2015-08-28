@@ -4,6 +4,14 @@ import sys
 import Queue as Q
 import time
 
+# i_<var name> = integer type
+# b_<var name> = boolean type
+# l_<var name> = list
+# d_<var name> = dictionary
+# q_<var name> = queue
+# edge_<var name> = an edge object
+# node_<var name> = a node object
+
 
 class Node:
     def __init__(self, _i_name):
@@ -115,10 +123,16 @@ if __name__ == '__main__':
     #     edge_broken = djikstra.d_edge_dict[(i_broken_edge_start, i_broken_edge_end)]
     #     edge_broken.b_broken = True
     started_at = time.time()
-    distances = djikstra.run_shortest_path(start, stop)
+    distances  = djikstra.run_shortest_path(start, stop)
     stopped_at = time.time()
     #     edge_broken.b_broken = False
     #     djikstra.reset_visited()
 
     print distances[stop]
+    count_seen = 0
+    for num in distances:
+        if num == sys.maxint:
+            count_seen += 1
+    print str(count_seen) + " nodes were not set"
+    print str(len(djikstra.l_visited)) + " nodes were visited"
     print "Time = " + str(stopped_at - started_at)
