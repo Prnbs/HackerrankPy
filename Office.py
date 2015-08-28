@@ -30,11 +30,11 @@ class Office:
         self.l_visited = []
         self.d_edge_dict = {}
 
-    def get_the_other_node(self, edge, other_node):
-        if edge.i_right == other_node:
-            return edge.i_left
+    def get_the_other_node(self, edge_known, other_node):
+        if edge_known.i_right == other_node:
+            return edge_known.i_left
         else:
-            return edge.i_right
+            return edge_known.i_right
 
     def reset_visited(self):
         for node in self.l_visited:
@@ -49,33 +49,33 @@ class Office:
             l_distances.append(sys.maxint)
 
         l_distances[i_start] = 0
-        i_currNode = i_start
+        i_curr_node = i_start
         q_next_to_process = Q.PriorityQueue()
 
-        while not self.l_graph[i_currNode].b_visited:
-            self.l_graph[i_currNode].b_visited = True
-            self.l_visited.append(self.l_graph[i_currNode])
+        while not self.l_graph[i_curr_node].b_visited:
+            self.l_graph[i_curr_node].b_visited = True
+            self.l_visited.append(self.l_graph[i_curr_node])
 
-            for edge_next in self.l_graph[i_currNode].l_adjacents:
+            for edge_next in self.l_graph[i_curr_node].l_adjacents:
                 if not edge_next.b_broken:
                     # get the next Node
-                    i_node_next = self.get_the_other_node(edge_next, i_currNode)
+                    i_node_next = self.get_the_other_node(edge_next, i_curr_node)
 
                     # update the costs
-                    if l_distances[i_node_next] > l_distances[i_currNode] + edge_next.i_cost:
-                        l_distances[i_node_next] = l_distances[i_currNode] + edge_next.i_cost
+                    if l_distances[i_node_next] > l_distances[i_curr_node] + edge_next.i_cost:
+                        l_distances[i_node_next] = l_distances[i_curr_node] + edge_next.i_cost
                         # set the parent node
-                        self.l_graph[i_node_next].node_parent = self.l_graph[i_currNode]
+                        self.l_graph[i_node_next].node_parent = self.l_graph[i_curr_node]
                         # put this node in the priority queue
                         q_next_to_process.put(self.l_graph[i_node_next])
 
             #  now find the lowest costing node to process next
             if not q_next_to_process.empty():
                 node_next = q_next_to_process.get()
-                i_currNode = node_next.i_name
+                i_curr_node = node_next.i_name
 
             # if next node is goal node then our job is done
-            if i_currNode == i_stop:
+            if i_curr_node == i_stop:
                 break
 
         return l_distances
