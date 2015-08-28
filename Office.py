@@ -23,10 +23,11 @@ class Node:
 
 class Edge:
     def __init__(self, _i_left, _i_right, _i_cost):
-        self.i_left   = _i_left
-        self.i_right  = _i_right
-        self.i_cost   = _i_cost
-        self.b_broken = False
+        self.i_left          = _i_left
+        self.i_right         = _i_right
+        self.i_cost          = _i_cost
+        self.b_broken        = False
+        self.b_shortest_edge = False
 
     def __cmp__(self, edge_other):
         return cmp(self.cost, edge_other.cost)
@@ -37,6 +38,7 @@ class Office:
         self.l_graph = []
         self.l_visited = []
         self.d_edge_dict = {}
+        self.d_shortest_path = {}
 
     def get_the_other_node(self, edge_known, other_node):
         if edge_known.i_right == other_node:
@@ -48,6 +50,25 @@ class Office:
         for node in self.l_visited:
             node.b_visited = False
         self.l_visited = []
+
+    def mark_shortest_edge(self, i_start, i_stop):
+        i_last_node = i_stop
+        while self.l_graph[i_last_node].node_parent.i_name != i_start:
+            # get edge node
+            edge_current = self.d_edge_dict[(self.l_graph[i_last_node].node_parent.i_name, i_last_node)]
+            # mark it as shortest path
+            edge_current.b_shortest_edge = True
+            # add shortest edge to dictionary
+            self.d_shortest_path[(self.l_graph[i_last_node].node_parent.i_name, i_last_node)] = edge_current
+            self.d_shortest_path[(i_last_node, self.l_graph[i_last_node].node_parent.i_name)] = edge_current
+            # update next node
+            i_last_node = self.l_graph[i_last_node].node_parent.i_name
+        # update for starting node
+        edge_current = self.d_edge_dict[(i_start, i_last_node)]
+        edge_current.b_shortest_edge = True
+        # add start edge to dictionary
+        self.d_shortest_path[(i_start, i_last_node)] = edge_current
+        self.d_shortest_path[(i_last_node, i_start)] = edge_current
 
     def run_shortest_path(self, i_start, i_stop):
         i_graph_size = len(self.l_graph)
@@ -127,6 +148,7 @@ if __name__ == '__main__':
     stopped_at = time.time()
     #     edge_broken.b_broken = False
     #     djikstra.reset_visited()
+    # djikstra.mark_shortest_edge(start, stop)
 
     print distances[stop]
     count_seen = 0
