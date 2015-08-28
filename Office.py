@@ -2,6 +2,7 @@ __author__ = 'prnbs'
 
 import sys
 import Queue as Q
+import time
 
 
 class Node:
@@ -26,7 +27,8 @@ class Edge:
 class Office:
     def __init__(self):
         self.l_graph = []
-        self.b_visited = []
+        self.l_visited = []
+        self.d_edge_dict = {}
 
     def get_the_other_node(self, edge, other_node):
         if edge.i_right == other_node:
@@ -35,8 +37,9 @@ class Office:
             return edge.i_right
 
     def reset_visited(self):
-        for node in self.b_visited:
+        for node in self.l_visited:
             node.b_visited = False
+        self.l_visited = []
 
     def run_shortest_path(self, i_start, i_stop):
         i_graph_size = len(self.l_graph)
@@ -51,23 +54,29 @@ class Office:
 
         while not self.l_graph[i_currNode].b_visited:
             self.l_graph[i_currNode].b_visited = True
+            self.l_visited.append(self.l_graph[i_currNode])
 
             for edge_next in self.l_graph[i_currNode].l_adjacents:
                 if not edge_next.b_broken:
                     # get the next Node
                     i_node_next = self.get_the_other_node(edge_next, i_currNode)
 
-                    # print type(edge)
+                    # update the costs
                     if l_distances[i_node_next] > l_distances[i_currNode] + edge_next.i_cost:
                         l_distances[i_node_next] = l_distances[i_currNode] + edge_next.i_cost
+                        # set the parent node
                         self.l_graph[i_node_next].node_parent = self.l_graph[i_currNode]
+                        # put this node in the priority queue
                         q_next_to_process.put(self.l_graph[i_node_next])
 
-            while not q_next_to_process.empty():
-                i_node_next = q_next_to_process.get()
-                if not i_node_next.b_visited:
-                    i_currNode = i_node_next.i_name
-                    break
+            #  now find the lowest costing node to process next
+            if not q_next_to_process.empty():
+                node_next = q_next_to_process.get()
+                i_currNode = node_next.i_name
+
+            # if next node is goal node then our job is done
+            if i_currNode == i_stop:
+                break
 
         return l_distances
 
@@ -87,6 +96,8 @@ if __name__ == '__main__':
         edge   = Edge(left, right, weight)
         djikstra.l_graph[left].l_adjacents.append(edge)
         djikstra.l_graph[right].l_adjacents.append(edge)
+        djikstra.d_edge_dict[(left, right)] = edge
+        djikstra.d_edge_dict[(right, left)] = edge
 
     print "Finished creating graph"
 
@@ -94,6 +105,20 @@ if __name__ == '__main__':
     start      = int(start_stop[0])
     stop       = int(start_stop[1])
 
+    # i_queries = int(raw_input())
+    #
+    # for i in range(i_queries):
+    #     l_brokenEdges = raw_input().split()
+    #     i_broken_edge_start = int(l_brokenEdges[0])
+    #     i_broken_edge_end = int(l_brokenEdges[1])
+    #
+    #     edge_broken = djikstra.d_edge_dict[(i_broken_edge_start, i_broken_edge_end)]
+    #     edge_broken.b_broken = True
+    started_at = time.time()
     distances = djikstra.run_shortest_path(start, stop)
+    stopped_at = time.time()
+    #     edge_broken.b_broken = False
+    #     djikstra.reset_visited()
 
     print distances[stop]
+    print "Time = " + str(stopped_at - started_at)
