@@ -89,7 +89,8 @@ class Office:
                 if not edge_next.b_broken:
                     # get the next Node
                     i_node_next = self.get_the_other_node(edge_next, i_curr_node)
-
+                    if self.l_graph[i_node_next].b_visited:
+                        continue
                     # update the costs
                     if l_distances[i_node_next] > l_distances[i_curr_node] + edge_next.i_cost:
                         l_distances[i_node_next] = l_distances[i_curr_node] + edge_next.i_cost
@@ -98,10 +99,12 @@ class Office:
                         # put this node in the priority queue
                         q_next_to_process.put(self.l_graph[i_node_next])
 
-            #  now find the lowest costing node to process next
-            if not q_next_to_process.empty():
+            #  now find the lowest costing unvisited node to process next
+            while not q_next_to_process.empty():
                 node_next = q_next_to_process.get()
-                i_curr_node = node_next.i_name
+                if not node_next.b_visited:
+                    i_curr_node = node_next.i_name
+                    break
 
             # if next node is goal node then our job is done
             if i_curr_node == i_stop:
