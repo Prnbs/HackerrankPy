@@ -3,6 +3,8 @@ __author__ = 'prnbs'
 import sys
 import Queue as Q
 import time
+import mmap
+import os
 
 # i_<var name> = integer type
 # b_<var name> = boolean type
@@ -72,7 +74,7 @@ class Office:
 
     def run_shortest_path(self, i_start, i_stop):
         i_graph_size = len(self.l_graph)
-        l_distances  = []
+        l_distances  = [] #np.full(i_graph_size, sys.maxint)
 
         for i in range(i_graph_size):
             l_distances.append(sys.maxint)
@@ -81,6 +83,7 @@ class Office:
         i_curr_node = i_start
         q_next_to_process = Q.PriorityQueue()
 
+        i_time_start = time.time()
         while not self.l_graph[i_curr_node].b_visited:
             self.l_graph[i_curr_node].b_visited = True
             self.l_visited.append(self.l_graph[i_curr_node])
@@ -92,8 +95,9 @@ class Office:
                     if self.l_graph[i_node_next].b_visited:
                         continue
                     # update the costs
-                    if l_distances[i_node_next] > l_distances[i_curr_node] + edge_next.i_cost:
-                        l_distances[i_node_next] = l_distances[i_curr_node] + edge_next.i_cost
+                    i_next_cost = l_distances[i_curr_node] + edge_next.i_cost
+                    if l_distances[i_node_next] > i_next_cost:
+                        l_distances[i_node_next] = i_next_cost
                         # set the parent node
                         self.l_graph[i_node_next].node_parent = self.l_graph[i_curr_node]
                         # put this node in the priority queue
@@ -105,37 +109,45 @@ class Office:
                 if not node_next.b_visited:
                     i_curr_node = node_next.i_name
                     break
-
             # if next node is goal node then our job is done
             if i_curr_node == i_stop:
                 break
+        i_time_stop = time.time()
+        print "Djikstra's main while in " + str(i_time_stop - i_time_start)
 
         return l_distances
 
 if __name__ == '__main__':
+    global_start = time.time()
     djikstra = Office()
-    graphInit = raw_input().split()
-    N = int(graphInit[0])
-    M = int(graphInit[1])
-    for i in range(N):
-        djikstra.l_graph.append(Node(i))
+    start = 0
+    stop  = 0
+    with open(sys.argv[1], "r") as f:
+        mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+        graphInit = mm.readline().split()
 
-    for i in range(M):
-        nodes  = raw_input().split()
-        left   = int(nodes[0])
-        right  = int(nodes[1])
-        weight = int(nodes[2])
-        edge   = Edge(left, right, weight)
-        djikstra.l_graph[left].l_adjacents.append(edge)
-        djikstra.l_graph[right].l_adjacents.append(edge)
-        djikstra.d_edge_dict[(left, right)] = edge
-        djikstra.d_edge_dict[(right, left)] = edge
+        N = int(graphInit[0])
+        M = int(graphInit[1])
 
-    print "Finished creating graph"
+        for i in range(N):
+            djikstra.l_graph.append(Node(i))
 
-    start_stop = raw_input().split()
-    start      = int(start_stop[0])
-    stop       = int(start_stop[1])
+        for i in range(M):
+            nodes  = mm.readline().split()
+            left   = int(nodes[0])
+            right  = int(nodes[1])
+            weight = int(nodes[2])
+            edge   = Edge(left, right, weight)
+            djikstra.l_graph[left].l_adjacents.append(edge)
+            djikstra.l_graph[right].l_adjacents.append(edge)
+            djikstra.d_edge_dict[(left, right)] = edge
+            djikstra.d_edge_dict[(right, left)] = edge
+
+        print "Finished creating graph"
+
+        start_stop = mm.readline().split()
+        start      = int(start_stop[0])
+        stop       = int(start_stop[1])
 
     # i_queries = int(raw_input())
     #
@@ -154,10 +166,9 @@ if __name__ == '__main__':
     # djikstra.mark_shortest_edge(start, stop)
 
     print distances[stop]
-    count_seen = 0
-    for num in distances:
-        if num == sys.maxint:
-            count_seen += 1
-    print str(count_seen) + " nodes were not set"
-    print str(len(djikstra.l_visited)) + " nodes were visited"
+
+    global_stop = time.time()
+
     print "Time = " + str(stopped_at - started_at)
+
+    print "Total time = " + str(global_stop - global_start)
