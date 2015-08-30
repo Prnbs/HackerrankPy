@@ -81,7 +81,7 @@ class Office:
 
     def run_shortest_path(self, i_start, i_stop):
         i_graph_size = len(self.l_graph)
-        l_distances  = [] #np.full(i_graph_size, sys.maxint)
+        l_distances  = []
 
         for i in range(i_graph_size):
             l_distances.append(sys.maxint)
@@ -90,7 +90,6 @@ class Office:
         i_curr_node = i_start
         q_next_to_process = Q.PriorityQueue()
 
-        i_time_start = time.time()
         while not self.l_graph[i_curr_node].b_visited:
             self.l_graph[i_curr_node].b_visited = True
             self.l_visited.append(self.l_graph[i_curr_node])
@@ -117,14 +116,12 @@ class Office:
                     i_curr_node = node_next.i_name
                     break
             # if next node is goal node then our job is done
-            # if i_curr_node == i_stop:
-            #     break
-        i_time_stop = time.time()
-        print "Djikstra's main while in " + str(i_time_stop - i_time_start)
+            if i_curr_node == i_stop:
+                break
 
         return l_distances
 
-    def compute_next_shortest_cost(self, edge_broken, l_known_shortest, i_start):
+    def compute_next_shortest_cost(self, edge_broken, l_known_shortest, i_start, i_stop):
         l_new_shortest = np.full(len(self.l_graph), sys.maxint)
         l_new_shortest[i_start] = 0
         i_curr_node = i_start
@@ -133,15 +130,22 @@ class Office:
         q_next_nodes.put(i_curr_node)
         while not q_next_nodes.empty():
             i_curr_node = q_next_nodes.get()
-            for edge_adjacent in self.l_graph[i_curr_node].l_adjacents:
-                if not edge_adjacent.b_broken:
-                    i_other_node = self.get_the_other_node(edge_adjacent, i_curr_node)
-                    if i_other_node not in d_seen_nodes:
-                        if l_new_shortest[i_other_node] > l_new_shortest[i_curr_node] + edge_adjacent.i_cost:
-                            l_new_shortest[i_other_node] = l_new_shortest[i_curr_node] + edge_adjacent.i_cost
-                            q_next_nodes.put(i_other_node)
+            if i_curr_node not in d_seen_nodes:
+                if i_curr_node == i_stop:
+                    break
+                for edge_adjacent in self.l_graph[i_curr_node].l_adjacents:
+                    if not edge_adjacent.b_broken:
+                        i_other_node = self.get_the_other_node(edge_adjacent, i_curr_node)
+                        if i_other_node not in d_seen_nodes:
+                            if l_new_shortest[i_other_node] > l_new_shortest[i_curr_node] + edge_adjacent.i_cost:
+                                l_new_shortest[i_other_node] = l_new_shortest[i_curr_node] + edge_adjacent.i_cost
+                                # if new cost equals shortest path cost i_other_node's cost will never be updated again
+                                if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
+                                    d_seen_nodes[i_other_node] = True
+                                else:
+                                    q_next_nodes.put(i_other_node)
 
-            d_seen_nodes[i_curr_node] = True
+                d_seen_nodes[i_curr_node] = True
         return l_new_shortest
 
 if __name__ == '__main__':
@@ -178,9 +182,8 @@ if __name__ == '__main__':
         l_shortest_distances  = djikstra.run_shortest_path(start, stop)
         # colour the edges which lead to shortest path
         djikstra.mark_shortest_edge(start, stop)
-
+        query_start = time.time()
         i_queries = int(mm.readline())
-        print l_shortest_distances
         for i in range(i_queries):
             l_brokenEdges = mm.readline().split()
             i_broken_edge_start = int(l_brokenEdges[0])
@@ -189,12 +192,18 @@ if __name__ == '__main__':
             edge_broken = djikstra.d_edge_dict[(i_broken_edge_start, i_broken_edge_end)]
             if edge_broken.b_shortest_edge:
                 edge_broken.b_broken = True
-                l_new_short = djikstra.compute_next_shortest_cost(edge_broken, l_shortest_distances, start)
+                l_new_short = djikstra.compute_next_shortest_cost(edge_broken, l_shortest_distances, start, stop)
                 edge_broken.b_broken = False
-                print int(l_new_short[stop])
+                if l_new_short[stop] == sys.maxint:
+                    print "Infinity"
+                else:
+                    print int(l_new_short[stop])
             else:
                 print l_shortest_distances[stop]
 
-    global_stop = time.time()
+        query_stop = time.time()
+        print "Total query ime = " + str(query_stop - query_start)
+
     f.close()
-    print "Total time = " + str(global_stop - global_start)
+    global_stop = time.time()
+    # print "Total time = " + str(global_stop - global_start)
