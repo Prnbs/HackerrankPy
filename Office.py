@@ -142,8 +142,8 @@ class Office:
                                 # if new cost equals shortest path cost i_other_node's cost will never be updated again
                                 if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
                                     d_seen_nodes[i_other_node] = True
-                                else:
-                                    q_next_nodes.put(i_other_node)
+                                # else:
+                                q_next_nodes.put(i_other_node)
 
                 d_seen_nodes[i_curr_node] = True
         return l_new_shortest
@@ -151,59 +151,49 @@ class Office:
 if __name__ == '__main__':
     global_start = time.time()
     djikstra = Office()
-    start = 0
-    stop  = 0
-    with open(sys.argv[1], "r") as f:
-        mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-        graphInit = mm.readline().split()
+    # with open(sys.argv[1], "r") as f:
+    # mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
 
-        N = int(graphInit[0])
-        M = int(graphInit[1])
+    [N, M] = map(int, raw_input().strip().split())
 
-        for i in range(N):
-            djikstra.l_graph.append(Node(i))
+    for i in range(N):
+        djikstra.l_graph.append(Node(i))
 
-        for i in range(M):
-            nodes  = mm.readline().split()
-            left   = int(nodes[0])
-            right  = int(nodes[1])
-            weight = int(nodes[2])
-            edge   = Edge(left, right, weight)
-            djikstra.l_graph[left].l_adjacents.append(edge)
-            djikstra.l_graph[right].l_adjacents.append(edge)
-            djikstra.d_edge_dict[(left, right)] = edge
-            djikstra.d_edge_dict[(right, left)] = edge
+    for i in range(M):
+        [left, right, weight] = map(int, raw_input().strip().split())
 
-        start_stop = mm.readline().split()
-        start      = int(start_stop[0])
-        stop       = int(start_stop[1])
+        edge   = Edge(left, right, weight)
+        djikstra.l_graph[left].l_adjacents.append(edge)
+        djikstra.l_graph[right].l_adjacents.append(edge)
+        djikstra.d_edge_dict[(left, right)] = edge
+        djikstra.d_edge_dict[(right, left)] = edge
 
-        # perform djikstra on full graph
-        l_shortest_distances  = djikstra.run_shortest_path(start, stop)
-        # colour the edges which lead to shortest path
-        djikstra.mark_shortest_edge(start, stop)
-        query_start = time.time()
-        i_queries = int(mm.readline())
-        for i in range(i_queries):
-            l_brokenEdges = mm.readline().split()
-            i_broken_edge_start = int(l_brokenEdges[0])
-            i_broken_edge_end = int(l_brokenEdges[1])
+    [start, stop] = map(int, raw_input().strip().split())
 
-            edge_broken = djikstra.d_edge_dict[(i_broken_edge_start, i_broken_edge_end)]
-            if edge_broken.b_shortest_edge:
-                edge_broken.b_broken = True
-                l_new_short = djikstra.compute_next_shortest_cost(edge_broken, l_shortest_distances, start, stop)
-                edge_broken.b_broken = False
-                if l_new_short[stop] == sys.maxint:
-                    print "Infinity"
-                else:
-                    print int(l_new_short[stop])
+    algo_start = time.time()
+    # perform djikstra on full graph
+    l_shortest_distances  = djikstra.run_shortest_path(start, stop)
+    # colour the edges which lead to shortest path
+    djikstra.mark_shortest_edge(start, stop)
+    i_queries = int(raw_input())
+    for i in range(i_queries):
+        [i_broken_edge_start, i_broken_edge_end] = map(int, raw_input().strip().split())
+
+        edge_broken = djikstra.d_edge_dict[(i_broken_edge_start, i_broken_edge_end)]
+        if edge_broken.b_shortest_edge:
+            edge_broken.b_broken = True
+            l_new_short = djikstra.compute_next_shortest_cost(edge_broken, l_shortest_distances, start, stop)
+            edge_broken.b_broken = False
+            if l_new_short[stop] == sys.maxint:
+                print "Infinity"
             else:
-                print l_shortest_distances[stop]
+                print int(l_new_short[stop])
+        else:
+            print l_shortest_distances[stop]
 
-        query_stop = time.time()
-        print "Total query ime = " + str(query_stop - query_start)
+    algo_stop = time.time()
+    # print "Algo time = " + str(algo_stop - algo_start)
 
-    f.close()
+    # f.close()
     global_stop = time.time()
     # print "Total time = " + str(global_stop - global_start)
