@@ -5,6 +5,7 @@ import time
 import mmap
 import Queue as Q
 import numpy as np
+import fileinput
 
 # i_<var name> = integer type
 # b_<var name> = boolean type
@@ -88,7 +89,7 @@ class Office:
 
         l_distances[i_start] = 0
         i_curr_node = i_start
-        q_next_to_process = Q.PriorityQueue()
+        q_next_to_process = Q.Queue()
 
         while not self.l_graph[i_curr_node].b_visited:
             self.l_graph[i_curr_node].b_visited = True
@@ -140,10 +141,10 @@ class Office:
                             if l_new_shortest[i_other_node] > l_new_shortest[i_curr_node] + edge_adjacent.i_cost:
                                 l_new_shortest[i_other_node] = l_new_shortest[i_curr_node] + edge_adjacent.i_cost
                                 # if new cost equals shortest path cost i_other_node's cost will never be updated again
-                                if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
-                                    d_seen_nodes[i_other_node] = True
-                                else:
-                                    q_next_nodes.put(i_other_node)
+                                # if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
+                                #     q_next_nodes.put(i_other_node)
+                                #     break
+                            q_next_nodes.put(i_other_node)
 
                 d_seen_nodes[i_curr_node] = True
         return l_new_shortest
@@ -153,10 +154,10 @@ if __name__ == '__main__':
     djikstra = Office()
     start = 0
     stop  = 0
+    print fileinput.input()
     with open(sys.argv[1], "r") as f:
-        mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+        mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
         graphInit = mm.readline().split()
-
         N = int(graphInit[0])
         M = int(graphInit[1])
 
