@@ -149,7 +149,7 @@ class Office:
                                 q_next_nodes.put((l_new_shortest[i_other_node],i_other_node))
 
                 d_seen_nodes[i_curr_node] = True
-        print "While ran for " + str(i_while_count)
+        # print "While ran for " + str(i_while_count)
         return l_new_shortest
 
 if __name__ == '__main__':
@@ -163,6 +163,7 @@ if __name__ == '__main__':
 
     for i in range(M):
         [left, right, weight] = map(int, std_input.readline().split())
+
         edge   = Edge(left, right, weight)
         djikstra.l_graph[left].l_adjacents.append(edge)
         djikstra.l_graph[right].l_adjacents.append(edge)
@@ -195,6 +196,9 @@ if __name__ == '__main__':
 
     query_stop = time.time()
     print "Total query time = " + str(query_stop - query_start)
+
+    algo_stop = time.time()
+    # print "Algo time = " + str(algo_stop - algo_start)
 
     global_stop = time.time()
     print "Total time = " + str(global_stop - global_start)
