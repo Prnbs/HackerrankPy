@@ -128,7 +128,9 @@ class Office:
         q_next_nodes = Q.PriorityQueue()
         d_seen_nodes = {}
         q_next_nodes.put((0,i_curr_node))
+        i_while_count = 0
         while not q_next_nodes.empty():
+            i_while_count +=1
             (x, i_curr_node) = q_next_nodes.get()
             if i_curr_node not in d_seen_nodes:
                 if i_curr_node == i_stop:
@@ -143,9 +145,11 @@ class Office:
                                 # if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
                                 #     q_next_nodes.put(i_other_node)
                                 #     break
-                            q_next_nodes.put((l_new_shortest[i_other_node],i_other_node))
+                            if i_other_node not in d_seen_nodes:
+                                q_next_nodes.put((l_new_shortest[i_other_node],i_other_node))
 
                 d_seen_nodes[i_curr_node] = True
+        print "While ran for " + str(i_while_count)
         return l_new_shortest
 
 if __name__ == '__main__':
