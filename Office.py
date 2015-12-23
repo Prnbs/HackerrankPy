@@ -2,9 +2,9 @@ __author__ = 'prnbs'
 
 import sys
 import time
-import mmap
 import Queue as Q
 import numpy as np
+import fileinput
 
 # i_<var name> = integer type
 # b_<var name> = boolean type
@@ -107,13 +107,13 @@ class Office:
                         # set the parent node
                         self.l_graph[i_node_next].node_parent = self.l_graph[i_curr_node]
                         # put this node in the priority queue
-                        q_next_to_process.put(self.l_graph[i_node_next])
+                        q_next_to_process.put((i_next_cost, i_node_next))
 
             #  now find the lowest costing unvisited node to process next
             while not q_next_to_process.empty():
-                node_next = q_next_to_process.get()
-                if not node_next.b_visited:
-                    i_curr_node = node_next.i_name
+                (i_cost, i_next_node) = q_next_to_process.get()
+                if not self.l_graph[i_next_node].b_visited:
+                    i_curr_node = i_next_node
                     break
             # if next node is goal node then our job is done
             if i_curr_node == i_stop:
@@ -125,11 +125,13 @@ class Office:
         l_new_shortest = np.full(len(self.l_graph), sys.maxint)
         l_new_shortest[i_start] = 0
         i_curr_node = i_start
-        q_next_nodes = Q.Queue()
+        q_next_nodes = Q.PriorityQueue()
         d_seen_nodes = {}
-        q_next_nodes.put(i_curr_node)
+        q_next_nodes.put((0,i_curr_node))
+        i_while_count = 0
         while not q_next_nodes.empty():
-            i_curr_node = q_next_nodes.get()
+            i_while_count +=1
+            (x, i_curr_node) = q_next_nodes.get()
             if i_curr_node not in d_seen_nodes:
                 if i_curr_node == i_stop:
                     break
@@ -141,28 +143,26 @@ class Office:
                                 l_new_shortest[i_other_node] = l_new_shortest[i_curr_node] + edge_adjacent.i_cost
                                 # if new cost equals shortest path cost i_other_node's cost will never be updated again
                                 # if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
-                                #     # d_seen_nodes[i_other_node] = True
                                 #     q_next_nodes.put(i_other_node)
-                                    # break
-                                # else:
-                        q_next_nodes.put(i_other_node)
+                                #     break
+                            if i_other_node not in d_seen_nodes:
+                                q_next_nodes.put((l_new_shortest[i_other_node],i_other_node))
 
                 d_seen_nodes[i_curr_node] = True
+        # print "While ran for " + str(i_while_count)
         return l_new_shortest
 
 if __name__ == '__main__':
     global_start = time.time()
     djikstra = Office()
-    # with open(sys.argv[1], "r") as f:
-    # mm = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-
-    [N, M] = map(int, raw_input().strip().split())
+    std_input = fileinput.input()
+    [N, M] = map(int, std_input.readline().split())
 
     for i in range(N):
         djikstra.l_graph.append(Node(i))
 
     for i in range(M):
-        [left, right, weight] = map(int, raw_input().strip().split())
+        [left, right, weight] = map(int, std_input.readline().split())
 
         edge   = Edge(left, right, weight)
         djikstra.l_graph[left].l_adjacents.append(edge)
@@ -170,21 +170,20 @@ if __name__ == '__main__':
         djikstra.d_edge_dict[(left, right)] = edge
         djikstra.d_edge_dict[(right, left)] = edge
 
-    [start, stop] = map(int, raw_input().strip().split())
+    [start, stop] = map(int, std_input.readline().split())
 
-    algo_start = time.time()
     # perform djikstra on full graph
     l_shortest_distances  = djikstra.run_shortest_path(start, stop)
+    # print "Shortest Path = " + str(l_shortest_distances[stop])
     # colour the edges which lead to shortest path
     djikstra.mark_shortest_edge(start, stop)
-    print "shortest cost for "+ str(stop) + " is " + str(l_shortest_distances[stop])
-    i_queries = int(raw_input())
+    i_queries = int(std_input.readline())
+    query_start = time.time()
     for i in range(i_queries):
-        [i_broken_edge_start, i_broken_edge_end] = map(int, raw_input().strip().split())
+        [i_broken_edge_start, i_broken_edge_end] = map(int, std_input.readline().split())
 
         edge_broken = djikstra.d_edge_dict[(i_broken_edge_start, i_broken_edge_end)]
         if edge_broken.b_shortest_edge:
-            print "critical edge cut " + str(i_broken_edge_start) + " , " + str(i_broken_edge_end)
             edge_broken.b_broken = True
             l_new_short = djikstra.compute_next_shortest_cost(edge_broken, l_shortest_distances, start, stop)
             edge_broken.b_broken = False
@@ -195,9 +194,11 @@ if __name__ == '__main__':
         else:
             print l_shortest_distances[stop]
 
+    query_stop = time.time()
+    print "Total query time = " + str(query_stop - query_start)
+
     algo_stop = time.time()
     # print "Algo time = " + str(algo_stop - algo_start)
 
-    # f.close()
     global_stop = time.time()
-    # print "Total time = " + str(global_stop - global_start)
+    print "Total time = " + str(global_stop - global_start)
