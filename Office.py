@@ -140,10 +140,12 @@ class Office:
                             if l_new_shortest[i_other_node] > l_new_shortest[i_curr_node] + edge_adjacent.i_cost:
                                 l_new_shortest[i_other_node] = l_new_shortest[i_curr_node] + edge_adjacent.i_cost
                                 # if new cost equals shortest path cost i_other_node's cost will never be updated again
-                                if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
-                                    d_seen_nodes[i_other_node] = True
+                                # if l_new_shortest[i_other_node] == l_known_shortest[i_other_node]:
+                                #     # d_seen_nodes[i_other_node] = True
+                                #     q_next_nodes.put(i_other_node)
+                                    # break
                                 # else:
-                                q_next_nodes.put(i_other_node)
+                        q_next_nodes.put(i_other_node)
 
                 d_seen_nodes[i_curr_node] = True
         return l_new_shortest
@@ -175,12 +177,14 @@ if __name__ == '__main__':
     l_shortest_distances  = djikstra.run_shortest_path(start, stop)
     # colour the edges which lead to shortest path
     djikstra.mark_shortest_edge(start, stop)
+    print "shortest cost for "+ str(stop) + " is " + str(l_shortest_distances[stop])
     i_queries = int(raw_input())
     for i in range(i_queries):
         [i_broken_edge_start, i_broken_edge_end] = map(int, raw_input().strip().split())
 
         edge_broken = djikstra.d_edge_dict[(i_broken_edge_start, i_broken_edge_end)]
         if edge_broken.b_shortest_edge:
+            print "critical edge cut " + str(i_broken_edge_start) + " , " + str(i_broken_edge_end)
             edge_broken.b_broken = True
             l_new_short = djikstra.compute_next_shortest_cost(edge_broken, l_shortest_distances, start, stop)
             edge_broken.b_broken = False
