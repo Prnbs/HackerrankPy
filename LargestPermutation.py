@@ -11,19 +11,23 @@ def create_index_buffer(N, original_array):
 
 def k_swaps(N, K, number_array, index_array):
     curr_index = 0
-    num_swaps = 0
-    for i in xrange(K):
-        if number_array[index_buffer[curr_index]] > number_array[curr_index]:
-            index_of_swapee = number_array[index_buffer[curr_index]] - 1
-            # swap items in number_array
-            number_array[index_buffer[curr_index]], number_array[curr_index] = number_array[curr_index], number_array[index_buffer[curr_index]]
-            # swap items in index array
-            index_array[index_of_swapee], index_array[curr_index] =  index_array[curr_index], index_array[index_of_swapee]
-            curr_index += 1
-            num_swaps += 1
+    # print index_array
+    i = 0
+    while i < K and curr_index < N:
+        if curr_index < N:
+            if number_array[index_buffer[curr_index]] > number_array[curr_index]:
+                # swap items in number_array
+                number_array[index_buffer[curr_index]], number_array[curr_index] = number_array[curr_index], number_array[index_buffer[curr_index]]
 
-    # if (K-num_swaps)%2 == 1:
-    #     number_array[N-1], number_array[N-2] = number_array[N-2], number_array[N-1]
+                left_index  = curr_index
+                right_index = index_array[curr_index]
+
+                #swap in index buffer
+                smaller_number = number_array[right_index]
+                actual_index = N - smaller_number
+                index_array[actual_index], index_array[curr_index] = index_array[curr_index], left_index
+                i += 1
+            curr_index += 1
     return number_array
 
 
